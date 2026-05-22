@@ -52,7 +52,7 @@
                 <div>
                     <div class="flex items-center">
                         <h1 class="font-bold text-lg leading-tight">한들중학교</h1>
-                        <span id="sync-status" class="bg-gray-600 text-[10px] text-white px-2 py-0.5 rounded-full font-bold ml-2">서버 연결 중...</span>
+                        <span id="sync-status" class="bg-emerald-600 text-[10px] text-white px-2 py-0.5 rounded-full font-bold ml-2">● 로컬 전용 모드</span>
                     </div>
                     <p class="text-xs text-indigo-200">2026학년도 1학기 성적 평가 시스템</p>
                 </div>
@@ -270,21 +270,37 @@
         <p>© 2026 한들중학교 3학년 4반 학업성취 관리 시스템 | 개발 및 기획: 컴퓨터 정보 교사</p>
     </footer>
 
-    <!-- Firebase 모듈 및 성적 조회 로직 연동 스크립트 -->
-    <script type="module">
-        // Firebase 최신 웹 SDK 버전 11.6.1 모듈 수입
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // 1. 교육용 백업 데이터셋 정의 (네트워크 연결 불가 시 fallback 작동)
+    <!-- 로컬 성적 조회 프로그램 전용 자바스크립트 -->
+    <script>
+        // 1. 교육용 한들중학교 3학년 4반 27인 실제 데모 데이터셋 정의
         const DEMO_DATABASE = {
             "4829": { ban: "4", bunho: "1", name: "강민형", scores: { "국어": 86, "사회": 54, "역사": 73, "수학": 92, "과학": 82.6, "영어": 91, "한문": 70 }, total: "548.6", avg: "78.4", rankClass: "7", rankTotal: "24" },
             "1056": { ban: "4", bunho: "2", name: "고종혁", scores: { "국어": 47, "사회": 40, "역사": 53, "수학": 36, "과학": 74, "영어": 12, "한문": 62 }, total: "324", avg: "46.3", rankClass: "15", rankTotal: "60" },
             "7302": { ban: "4", bunho: "3", name: "곽효주", scores: { "국어": 67, "사회": 23, "역사": 20, "수학": 21, "과학": 9, "영어": 23, "한문": 10 }, total: "173", avg: "24.7", rankClass: "22", rankTotal: "88" },
             "9147": { ban: "4", bunho: "4", name: "구예은", scores: { "국어": 82, "사회": 45, "역사": 51, "수학": 28, "과학": 41.1, "영어": 18, "한문": 36 }, total: "301.1", avg: "43.0", rankClass: "18", rankTotal: "67" },
             "2683": { ban: "4", bunho: "5", name: "김근아", scores: { "국어": 58, "사회": 39, "역사": 77, "수학": 28, "과학": 24.4, "영어": 9, "한문": 15 }, total: "250.4", avg: "35.8", rankClass: "20", rankTotal: "75" },
-            "5014": { ban: "4", bunho: "6", name: "김재이", scores: { "국어": 93, "사회": 92, "역사": 91, "수학": 95, "과학": 96.7, "영어": 58, "한문": 73 }, total: "598.7", avg: "85.5", rankClass: "4", rankTotal: "18" }
+            "5014": { ban: "4", bunho: "6", name: "김재이", scores: { "국어": 93, "사회": 92, "역사": 91, "수학": 95, "과학": 96.7, "영어": 58, "한문": 73 }, total: "598.7", avg: "85.5", rankClass: "4", rankTotal: "18" },
+            "8239": { ban: "4", bunho: "7", name: "남가연", scores: { "국어": 96, "사회": 97, "역사": 100, "수학": 100, "과학": 100, "영어": 98, "한문": 100 }, total: "691", avg: "98.7", rankClass: "1", rankTotal: "2" },
+            "3765": { ban: "4", bunho: "8", name: "노경민", scores: { "국어": 10, "사회": 11, "역사": 11, "수학": 4, "과학": 24, "영어": 9, "한문": 6 }, total: "75", avg: "10.7", rankClass: "27", rankTotal: "102" },
+            "6491": { ban: "4", bunho: "9", name: "문대성", scores: { "국어": 58, "사회": 25, "역사": 9, "수학": 35, "과학": 17.9, "영어": 20, "한문": 0 }, total: "164.9", avg: "23.6", rankClass: "23", rankTotal: "90" },
+            "1928": { ban: "4", bunho: "10", name: "박혜인", scores: { "국어": 72, "사회": 39, "역사": 67, "수학": 19, "과학": 52.6, "영어": 44, "한문": 16 }, total: "309.6", avg: "44.2", rankClass: "16", rankTotal: "65" },
+            "5370": { ban: "4", bunho: "11", name: "방시은", scores: { "국어": 92, "사회": 79, "역사": 94, "수학": 50, "과학": 85.6, "영어": 70, "한문": 79 }, total: "549.6", avg: "78.5", rankClass: "6", rankTotal: "23" },
+            "8046": { ban: "4", bunho: "12", name: "선우현", scores: { "국어": 97, "사회": 83, "역사": 95, "수학": 100, "과학": 96.6, "영어": 89, "한문": 84 }, total: "644.6", avg: "92.1", rankClass: "3", rankTotal: "10" },
+            "2157": { ban: "4", bunho: "13", name: "유시은", scores: { "국어": 72, "사회": 46, "역사": 67, "수학": 32, "과학": 45, "영어": 24, "한문": 16 }, total: "302", avg: "43.1", rankClass: "17", rankTotal: "66" },
+            "4639": { ban: "4", bunho: "14", name: "윤성현", scores: { "국어": 77, "사회": 90, "역사": 92, "수학": 97, "과학": 77.6, "영어": 74, "한문": 83 }, total: "590.6", avg: "84.4", rankClass: "5", rankTotal: "19" },
+            "7082": { ban: "4", bunho: "15", name: "임하연", scores: { "국어": 68, "사회": 57, "역사": 85, "수학": 59, "과학": 74.7, "영어": 50, "한문": 18 }, total: "411.7", avg: "58.8", rankClass: "11", rankTotal: "41" },
+            "9513": { ban: "4", bunho: "16", name: "장은비", scores: { "국어": 82, "사회": 69, "역사": 82, "수학": 58, "과학": 61.7, "영어": 71, "한문": 41 }, total: "464.7", avg: "66.4", rankClass: "10", rankTotal: "35" },
+            "3240": { ban: "4", bunho: "17", name: "전단비", scores: { "국어": 54, "사회": 28, "역사": 40, "수학": 17, "과학": 42.5, "영어": 11, "한문": 28 }, total: "220.5", avg: "31.5", rankClass: "21", rankTotal: "77" },
+            "6871": { ban: "4", bunho: "18", name: "정여원", scores: { "국어": 66, "사회": 63, "역사": 80, "수학": 32, "과학": 53.9, "영어": 48, "한문": 28 }, total: "370.9", avg: "53", rankClass: "13", rankTotal: "48" },
+            "1492": { ban: "4", bunho: "19", name: "정장진", scores: { "국어": 12, "사회": 33, "역사": 20, "수학": 33, "과학": 9.5, "영어": 8, "한문": 12 }, total: "127.5", avg: "18.2", rankClass: "26", rankTotal: "98" },
+            "5730": { ban: "4", bunho: "20", name: "정현도", scores: { "국어": 93, "사회": 92, "역사": 93, "수학": 94, "과학": 100, "영어": 97, "한문": 100 }, total: "669", avg: "95.6", rankClass: "2", rankTotal: "5" },
+            "8406": { ban: "4", bunho: "21", name: "조재형", scores: { "국어": 31, "사회": 27, "역사": 27, "수학": 10, "과학": 26.7, "영어": 16, "한문": 23 }, total: "160.7", avg: "23", rankClass: "24", rankTotal: "91" },
+            "2961": { ban: "4", bunho: "22", name: "주예준", scores: { "국어": 56, "사회": 31, "역사": 46, "수학": 28, "과학": 41, "영어": 37, "한문": 22 }, total: "261", avg: "37.3", rankClass: "19", rankTotal: "72" },
+            "4035": { ban: "4", bunho: "23", name: "최가인", scores: { "국어": 90, "사회": 78, "역사": 75, "수학": 52, "과학": 77.2, "영어": 84, "한문": 80 }, total: "536.2", avg: "76.6", rankClass: "8", rankTotal: "26" },
+            "7518": { ban: "4", bunho: "24", name: "최민주", scores: { "국어": 11, "사회": 27, "역사": 22, "수학": 20, "과학": 17, "영어": 13, "한문": 23 }, total: "133", avg: "19", rankClass: "25", rankTotal: "97" },
+            "9246": { ban: "4", bunho: "25", name: "최은우", scores: { "국어": 74, "사회": 52, "역사": 48, "수학": 46, "과학": 46.5, "영어": 60, "한문": 30 }, total: "356.5", avg: "50.9", rankClass: "14", rankTotal: "53" },
+            "3870": { ban: "4", bunho: "26", name: "황현", scores: { "국어": 85, "사회": 61, "역사": 58, "수학": 77, "과학": 71.5, "영어": 19, "한문": 30 }, total: "401.5", avg: "57.4", rankClass: "12", rankTotal: "44" },
+            "6154": { ban: "4", bunho: "27", name: "백소윤", scores: { "국어": 95, "사회": 49, "역사": 94, "수학": 70, "과학": 60.9, "영어": 60, "한문": 44 }, total: "472.9", avg: "67.6", rankClass: "9", rankTotal: "32" }
         };
 
         const CLASS_AVERAGES = {
@@ -296,144 +312,13 @@
         let activeClassAverages = { ...CLASS_AVERAGES };
         let pinInput = "";
         let scoreChartInstance = null;
-        let currentUser = null;
-        let syncUnsubscribe = null;
 
-        // 3. Firebase 및 Firestore 환경 설정 구성 (로컬 파일 실행 시 에러 완충 가드 구축)
-        let db = null;
-        let auth = null;
-        let useFirebase = false;
-        let appId = 'score-viewer-handeul';
-
-        if (typeof __app_id !== 'undefined') {
-            appId = __app_id;
-        }
-
-        // 로컬 브라우저에서 독립 실행될 때 변수가 없어도 무너지지 않도록 방어 코드 설계
-        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-            try {
-                const firebaseConfig = JSON.parse(__firebase_config);
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                useFirebase = true;
-            } catch (error) {
-                console.warn("서버 설정 파싱 중 문제 발생, 오프라인 단독 모드로 진입합니다.", error);
-            }
-        }
-
-        // 4. 인증 수립 프로세스 정의 (RULE 3 충족 및 오프라인 상태 가드)
-        async function initAuth() {
-            if (!useFirebase) {
-                // 로컬 환경 실행 시 즉각 오프라인 상태로 렌더링 유지
-                console.log("로컬 독립 모드로 앱을 실행합니다.");
-                updateSyncStatus("offline");
-                renderTeacherTable();
-                return;
-            }
-
-            updateSyncStatus("connecting");
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("인증 실패, 로컬 모드로 전환합니다.", error);
-                updateSyncStatus("offline");
-                showToast("오프라인 실습 데모 모드로 연결합니다.", "info");
-                renderTeacherTable();
-                return;
-            }
-
-            // 인증 상태 리스너 구독
-            onAuthStateChanged(auth, (user) => {
-                currentUser = user;
-                if (user) {
-                    updateSyncStatus("connected");
-                    startDatabaseRealTimeSync();
-                } else {
-                    updateSyncStatus("offline");
-                    if (syncUnsubscribe) {
-                        syncUnsubscribe();
-                        syncUnsubscribe = null;
-                    }
-                }
-            });
-        }
-
-        // 5. 실시간 클라우드 DB 구독 설정 (RULE 1 / RULE 2 충족 및 가드)
-        function startDatabaseRealTimeSync() {
-            if (!useFirebase || !currentUser) return;
-
-            // Strict Path 정책 준수: /artifacts/{appId}/public/data/grades/current_data
-            const gradesDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'grades', 'current_data');
-
-            syncUnsubscribe = onSnapshot(gradesDocRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    currentDatabase = data.studentDatabase || { ...DEMO_DATABASE };
-                    activeClassAverages = data.classAverages || { ...CLASS_AVERAGES };
-                    showToast("☁️ 클라우드 동기화 완료: 실시간 정보가 최신 상태로 갱신되었습니다.", "success");
-                } else {
-                    currentDatabase = { ...DEMO_DATABASE };
-                    activeClassAverages = { ...CLASS_AVERAGES };
-                }
-                renderTeacherTable();
-            }, (error) => {
-                console.error("클라우드 싱크 오류 발생:", error);
-                updateSyncStatus("offline");
-                showToast("실시간 데이터를 연동하는 중에 지연이 발생했습니다.", "error");
-                renderTeacherTable();
-            });
-        }
-
-        // 6. 클라우드 DB 업로드 함수 (선생님 조작 시 저장 처리)
-        async function saveDatabaseToCloud(newDb, newAverages) {
-            // 로컬 파일 실행 시 Firestore 가드 처리
-            if (!useFirebase || !currentUser) {
-                currentDatabase = newDb;
-                activeClassAverages = newAverages;
-                renderTeacherTable();
-                showToast("💾 로컬 오프라인 전용: 데이터가 일시적으로 브라우저에 임시 탑재되었습니다. (서버 연결 없음)", "success");
-                return;
-            }
-            try {
-                const gradesDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'grades', 'current_data');
-                await setDoc(gradesDocRef, {
-                    studentDatabase: newDb,
-                    classAverages: newAverages,
-                    updatedAt: new Date().toISOString()
-                });
-                showToast("💾 성적이 클라우드 서버에 동기화되었습니다. 즉시 조회가 가능합니다!", "success");
-            } catch (err) {
-                console.error("Cloud Write Error:", err);
-                showToast("서버 동기화 실패: " + err.message, "error");
-            }
-        }
-
-        // 상단 실시간 배지 UI 변경 함수
-        function updateSyncStatus(status) {
-            const badge = document.getElementById("sync-status");
-            if (!badge) return;
-            if (status === "connected") {
-                badge.className = "bg-emerald-600 text-[10px] text-white px-2 py-0.5 rounded-full font-bold ml-2 transition-all";
-                badge.innerText = "● 실시간 연동 완료";
-            } else if (status === "offline") {
-                badge.className = "bg-amber-600 text-[10px] text-white px-2 py-0.5 rounded-full font-bold ml-2 transition-all";
-                badge.innerText = "● 로컬 오프라인";
-            } else {
-                badge.className = "bg-gray-600 text-[10px] text-white px-2 py-0.5 rounded-full font-bold ml-2 transition-all animate-pulse";
-                badge.innerText = "연결 통신 중...";
-            }
-        }
-
-        // 7. 시스템 초기 온로드 위임
+        // 3. 페이지가 로드될 때 데이터베이스 불러오기 (브라우저 메모리 우선)
         window.onload = function() {
+            loadLocalSettings();
             initDragAndDrop();
             
-            // 키보드 직접 매핑 리스너 등록
+            // 키보드 이벤트 리스너
             document.addEventListener('keydown', function(event) {
                 const key = event.key;
                 if (!isNaN(key)) {
@@ -446,12 +331,59 @@
                     clearPin();
                 }
             });
-
-            // 인증 수립 프로세스 작동
-            initAuth();
         };
 
-        // 토스트 출력 유틸리티
+        // 브라우저 캐시(localStorage)에서 등록했던 성적 로딩
+        function loadLocalSettings() {
+            try {
+                const savedDb = localStorage.getItem("handeul_student_db");
+                const savedAvg = localStorage.getItem("handeul_class_avg");
+                if (savedDb && savedAvg) {
+                    currentDatabase = JSON.parse(savedDb);
+                    activeClassAverages = JSON.parse(savedAvg);
+                    showToast("💾 기기에 저장되어 있던 성적 데이터를 성공적으로 불러왔습니다.", "success");
+                } else {
+                    currentDatabase = { ...DEMO_DATABASE };
+                    activeClassAverages = { ...CLASS_AVERAGES };
+                }
+            } catch (e) {
+                console.warn("로컬 스토리지 로드 실패, 기본 데이터를 사용합니다.", e);
+                currentDatabase = { ...DEMO_DATABASE };
+                activeClassAverages = { ...CLASS_AVERAGES };
+            }
+            renderTeacherTable();
+        }
+
+        // 브라우저 캐시(localStorage)에 성적 데이터 저장하기
+        function saveLocalSettings(newDb, newAverages) {
+            try {
+                currentDatabase = newDb;
+                activeClassAverages = newAverages;
+                localStorage.setItem("handeul_student_db", JSON.stringify(newDb));
+                localStorage.setItem("handeul_class_avg", JSON.stringify(newAverages));
+                renderTeacherTable();
+                showToast("💾 성적 데이터가 현재 기기의 브라우저에 안전하게 저장되었습니다.", "success");
+            } catch (e) {
+                console.error("데이터 저장 오류:", e);
+                showToast("브라우저 저장 용량이 초과되었거나 로컬 환경 저장이 비활성화되어 있습니다.", "error");
+            }
+        }
+
+        // 기본 데모 성적으로 초기화
+        function resetToDemo() {
+            try {
+                localStorage.removeItem("handeul_student_db");
+                localStorage.removeItem("handeul_class_avg");
+                currentDatabase = { ...DEMO_DATABASE };
+                activeClassAverages = { ...CLASS_AVERAGES };
+                renderTeacherTable();
+                showToast("초기 기본 데모 데이터로 안전하게 복원되었습니다.", "success");
+            } catch (e) {
+                showToast("초기화 과정에 에러가 발생했습니다.", "error");
+            }
+        }
+
+        // 토스트 알림 메시지 유틸리티
         function showToast(message, type = "info") {
             const toast = document.getElementById("toast");
             const toastMsg = document.getElementById("toast-message");
@@ -482,7 +414,7 @@
             }, 3000);
         }
 
-        // 비밀번호 조작 제어부
+        // 비밀번호 입력 기능 제어
         function pressKey(num) {
             if (pinInput.length < 4) {
                 pinInput += num;
@@ -532,7 +464,7 @@
             }
         }
 
-        // 성적 통지표 동적 빌드
+        // 성적표 동적 빌드 및 출력
         function displayReport(student) {
             document.getElementById("login-section").classList.add("hidden");
             document.getElementById("report-section").classList.remove("hidden");
@@ -581,7 +513,7 @@
             renderChart(subjects, studentScores, averageScores);
         }
 
-        // Radar 차트 생성
+        // Radar 교과분석 차트 생성
         function renderChart(labels, studentData, averageData) {
             const ctx = document.getElementById('scoreChart').getContext('2d');
             if (!ctx) return;
@@ -637,7 +569,7 @@
             });
         }
 
-        // 안전 종료 로그아웃
+        // 로그아웃
         function logout() {
             document.getElementById("report-section").classList.add("hidden");
             document.getElementById("login-section").classList.remove("hidden");
@@ -645,7 +577,7 @@
             showToast("안전하게 로그아웃되었습니다.", "info");
         }
 
-        // 교사용 설정 토글
+        // 교사용 대시보드 켜고 끄기
         function toggleTeacherMode() {
             const modal = document.getElementById("teacher-modal");
             if (modal) {
@@ -653,7 +585,7 @@
             }
         }
 
-        // 드롭존 기획
+        // CSV 드롭존 이벤트 바인딩
         function initDragAndDrop() {
             const dropZone = document.getElementById("drop-zone");
             if (!dropZone) return;
@@ -708,7 +640,7 @@
             };
         }
 
-        // 학생 성적 파싱 및 클라우드 이전
+        // CSV 수동 분석기 및 로컬 갱신 로직
         function parseAndBuildDatabase(csvText) {
             const lines = csvText.split(/\r?\n/).map(line => line.trim()).filter(line => line.length > 0);
             if (lines.length < 2) {
@@ -795,14 +727,14 @@
                     newAverages[sub] = (subjectSums[sub] / validCount).toFixed(1);
                 }
 
-                // 클라우드로 즉시 업로드 (성공 시 onSnapshot에 의해 전체 자동 갱신됨)
-                saveDatabaseToCloud(newDatabase, newAverages);
+                // 기기 내에 영구 저장 (localStorage)
+                saveLocalSettings(newDatabase, newAverages);
             } else {
                 showToast("유효한 CSV 성적 정보 행을 검색하지 못했습니다.", "error");
             }
         }
 
-        // 교사용 설정 현황표 그리기
+        // 교사용 수동 현황표 그리기
         function renderTeacherTable() {
             const tableBody = document.getElementById("teacher-table-body");
             const countLabel = document.getElementById("teacher-count");
@@ -826,21 +758,6 @@
                 tableBody.appendChild(tr);
             });
         }
-
-        // 데모 데이터 복구 및 동기화 초기화
-        function resetToDemo() {
-            saveDatabaseToCloud(DEMO_DATABASE, CLASS_AVERAGES);
-        }
-
-        // ES6 모듈 특성상 글로벌(Window) 스코프에 인라인 호출 함수 맵핑
-        window.pressKey = pressKey;
-        window.backspace = backspace;
-        window.clearPin = clearPin;
-        window.submitPin = submitPin;
-        window.toggleTeacherMode = toggleTeacherMode;
-        window.logout = logout;
-        window.resetToDemo = resetToDemo;
-        window.handleFileSelect = handleFileSelect;
     </script>
 </body>
 </html>
